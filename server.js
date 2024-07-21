@@ -17,16 +17,19 @@ app.prepare().then(() => {
 
   io.on('connection', (socket) => {
     console.log('New client connected');
-    socket.broadcast.emit("welcome",`${socket.id} joined the chat`)
+    
     socket.on("send-message",(message)=>{
         socket.broadcast.emit("recieve-message",message)
         socket.emit("recieve-message",message)
     })
     socket.on("set-username",username=>{
         socket.username=username
+        console.log(`${username} joined the chat`);
+        socket.broadcast.emit("welcome",`${username} enter the chat`)
     })
     socket.on('disconnect', () => {
       console.log(`${socket.id} , ${socket.username} disconnected`);
+      socket.broadcast.emit("user-disconnected",`${socket.username} left the chat`)
     });
   });
 

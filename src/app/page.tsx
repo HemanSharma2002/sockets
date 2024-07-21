@@ -70,24 +70,41 @@ export default function Home() {
   }
 
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     for (let i = 0; i < 1000; i++) {
       setarray(prev => [...prev, String(i)])
     }
     socket.on('welcome', (message) => {
+      const m:Message={
+        sender:"",
+        content:message
+      }
       console.log(message);
+      
+      setmessages(prev => [...prev, m])
+      moveDown()
     })
     socket.on("recieve-message", (message: Message) => {
       setmessages(prev => [...prev, message])
       moveDown()
 
     })
+    socket.on("user-disconnected",(message)=>{
+      console.log(message);
+      
+      const m:Message={
+        sender:"",
+        content:message
+      }
+      setmessages(prev => [...prev, m])
+      moveDown()
+    })
     return () => {
       socket.disconnect()
     }
   }, [])
   return (
-    <main className="p-3 w-full h-full">
+    <main className="p-3 w-full max-h-full">
       {
         username === "" ?
           <main className=" flex flex-col gap-5">
@@ -99,26 +116,28 @@ export default function Home() {
               <Input value={input} onChange={e => setinput(e.target.value)} placeholder="Username" />
               <Button variant={"secondary"} onClick={() => {
                 setusername(input)
-                socket.emit("set-username", username)
+                socket.emit("set-username", input)
               }}><CgProfile className=" text-xl" /></Button>
             </div>
           </main> :
           <div className=" w-full h-full">
-            <div className=" w-full h-full flex flex-col items-center">
-            <Label className="  bg-blue-950 text-white p-2 rounded-md text-center w-full">Welcome to socketMessage</Label>
+            <div className=" w-full flex flex-col items-center h-[6vh]">
+            <Label className="  bg-blue-950 text-white p-2 h-full rounded-md text-center w-full">Welcome to socketMessage</Label>
             </div>
-            <div className=" w-full h-[85vh] overflow-y-scroll" id="messageBox" ref={messageBox}>
+            <div className=" w-full h-[79vh] overflow-y-scroll" id="messageBox" ref={messageBox}>
               {
                 messages.map(
                   message => (
-                    <div key={message.content} className={`w-full p-2 ${username === message.sender ? " flex flex-row justify-end" : " flex flex-row justify-start "}`}>
+                    <div key={message.content} className={`w-full p-2 ${message.sender===""?"flex flex-row justify-center":` ${username === message.sender ? " flex flex-row justify-end" : " flex flex-row justify-start "}`}`}>
                       <div className={` max-w-1/2  `}>
-                        <div className={` bg-blue-950 max-w-full   text-white p-2 rounded-sm } flex flex-col gap-2`}>
-                       
+                        <div className={` bg-blue-950 max-w-full   text-white p-2 rounded-sm ${message.sender===""&&" text-sm"} flex flex-col gap-2`}>
                           <p>
                             {message.content}
                           </p>
-                          <p className="text-[7px] text-end">~{message.sender}</p>
+                          {
+                            message.sender!==""&&
+                            <p className="text-[7px] text-end">~{message.sender}</p>
+                          }
                           
                         </div>
                       </div>
@@ -129,7 +148,7 @@ export default function Home() {
 
             </div>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className=" flex flex-row max-w-full h-[10vh] gap-2">
+              <form onSubmit={form.handleSubmit(onSubmit)} className=" flex flex-row max-w-full h-[15vh] gap-2">
                 <FormField
                   control={form.control}
                   name="message"
