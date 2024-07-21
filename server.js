@@ -31,6 +31,9 @@ app.prepare().then(() => {
       console.log(`${socket.id} , ${socket.username} disconnected`);
       socket.broadcast.emit("user-disconnected",`${socket.username} left the chat`)
     });
+    socket.on("typing",(username)=>{
+        socket.broadcast.emit("user-typing",username)
+    })
   });
 
   server.listen(3000, (err) => {

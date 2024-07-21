@@ -38,6 +38,7 @@ export default function Home() {
   const [input, setinput] = useState("")
   const socket = useMemo(() => io(), [])
   const messageBox = useRef<HTMLDivElement>(null);
+  const [typing, settyping] = useState("")
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -88,6 +89,12 @@ export default function Home() {
       setmessages(prev => [...prev, message])
       moveDown()
 
+    })
+    socket.on("user-typing",(user)=>{
+      console.log(user);
+      
+      settyping(user)
+      setTimeout(()=>settyping(""),1000)
     })
     socket.on("user-disconnected",(message)=>{
       console.log(message);
@@ -145,6 +152,12 @@ export default function Home() {
                   )
                 )
               }
+              {
+                typing!==""&&
+                <div>
+                  <p className=" bg-blue-950 text-white bg p-2 rounded-lg ">{typing} .....</p>
+                </div>
+              }
 
             </div>
             <Form {...form}>
@@ -155,7 +168,7 @@ export default function Home() {
                   render={({ field }) => (
                     <FormItem className=" w-full">
                       <FormControl className=" w-full">
-                        <Input placeholder="Message" className=" w-full" {...field} />
+                        <Input placeholder="Message" className=" w-full" onChangeCapture={()=>socket.emit("typing",username)} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
